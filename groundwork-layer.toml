@@ -1,0 +1,37 @@
+# The public base layer: the workflow, and the mechanism that assembles a stack of layers.
+#
+# It deliberately declares no `vault/` and no `standards/tech|legal|marketing`. Those hold one
+# person's answers — vendors, jurisdiction, fleet — and belong in a private layer stacked on top.
+# What is here is meant to be true for anyone using the workflow.
+
+schema = 1
+name = "base"
+note_dirs = ["workflows", "standards"]
+entry_file = "claude/CLAUDE.md"
+entry_max_words = 400
+
+# This layer never owns ~/.claude's symlinks; the top layer of a stack does.
+assembled = false
+
+# This repo commits straight to one branch and has no issue tracker, so commit subjects need no
+# trailing (#N). Type and scope are still required. See workflows/repo-workflow/commits-and-prs.md.
+commit_reference = "none"
+
+[map.standards]
+heading = "Standing preferences and defaults"
+purpose = "What to reach for when nothing about the task says otherwise. Not tied to any one job."
+
+[map.workflows]
+heading = "Process specs"
+purpose = "The concrete *how* for a recurring kind of work — read the whole file before doing that work."
+
+[map.claude]
+heading = "The live config loaded every session"
+purpose = "`CLAUDE.md`, `commands/` (`/`-triggered), `skills/`, `agents/`. Assembled into `~/.claude/`."
+
+# Identifiers this layer must never contain. Empty here by design: the base is generic, so there is
+# nothing it owns. A private layer that publishes a subset of itself would fill this in.
+[publishable]
+domains    = []
+emails     = []
+repo_stems = []

@@ -1,0 +1,10 @@
+graphify-out/
+.DS_Store
+.obsidian/
+
+# Python bytecode from bin/ helpers and workflow scripts
+__pycache__/
+*.py[cod]
+
+# Per-layer identity for `just commit`; never ships
+.groundwork/author-*

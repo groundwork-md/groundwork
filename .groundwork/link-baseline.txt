@@ -1,0 +1,3 @@
+# Wikilink targets that are known to be dangling and are deliberately left so, one per line.
+# Empty: every [[wikilink]] in this layer resolves. An entry here hides a broken link, so add one
+# only with a reason written next to it.

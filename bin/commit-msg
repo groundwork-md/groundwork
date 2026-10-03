@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+"""Reject a commit whose subject does not match `type(scope): description (#N)`.
+
+Installed into a repo's real git dir by `just install-hooks`. The rule is the commit rule of
+`workflows/repo-workflow/commits-and-prs.md`: a Conventional Commit with a required scope and a
+trailing issue reference. A layer with no tracker sets `commit_reference = "none"` in its
+`groundwork-layer.toml` (or `GWK_COMMIT_REFERENCE=none` in the environment), which drops only the
+reference; type and scope stay required, because those are the parts that actually drift.
+"""
+
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from gwk import check_commit_subject, commit_hint, commit_reference  # noqa: E402
+
+
+def main() -> int:
+    with open(sys.argv[1], encoding="utf-8", newline="") as f:
+        subject = f.readline().rstrip("\n")
+    if subject.startswith("#"):
+        return 0
+    problem = check_commit_subject(subject)
+    if problem is None:
+        return 0
+    print(f"commit-msg: rejected — {problem}", file=sys.stderr)
+    print(f"  got:      {subject}", file=sys.stderr)
+    for line in commit_hint(commit_reference()):
+        print(f"  {line}", file=sys.stderr)
+    print("  Use `just commit <type> <scope> \"<message>\" <paths>` to build one correctly.", file=sys.stderr)
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
