@@ -12,11 +12,12 @@ category: "map"
 
 What to reach for when nothing about the task says otherwise. Not tied to any one job.
 
-27 notes. Paths are relative to `standards/`.
+28 notes. Paths are relative to `standards/`.
 
 ## philosophy
 
 - [A task runner that can invoke itself needs a re-entrancy guard, not a careful author](philosophy/a-tool-that-can-invoke-itself-needs-a-re-entrancy-guard.md)
+- [Regenerable output is bounded where it is made: caches are capped, outputs overwrite, merged worktrees go](philosophy/bound-regenerable-output.md)
 - [Check the vault first, then the web, then write back](philosophy/check-vault-before-web.md)
 - [Three failed fixes: stop patching, re-examine the design](philosophy/debugging-escalation-after-repeated-failures.md)
 - [Deliberate-break proofs: a guard that has only ever passed is not known to work](philosophy/deliberate-break-proofs.md)
