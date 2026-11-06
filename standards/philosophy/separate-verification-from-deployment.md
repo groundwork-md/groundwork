@@ -61,3 +61,6 @@ glossary before the first deployment exists, so the code never assumes one signa
 
 Related: `[[silence-is-not-evidence-a-system-works]]` — a green signal that asserts nothing is the
 same failure one layer down.
+
+The cost side of this split, a small branch gate and the full suite once per integration, is
+`[[automated-runs-have-a-measured-budget]]`.

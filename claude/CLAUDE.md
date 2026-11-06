@@ -25,7 +25,7 @@ These fire on the situation, not on memory. **Read the file before starting the 
 | commit in a single-branch repo | `workflows/single-branch/commit-discipline.md` |
 | write or extend a spec | `workflows/session/templates/spec-format/` |
 | write tests | `standards/philosophy/derive-tests-from-the-code-surface.md`, then `standards/philosophy/reduce-testable-surface.md` |
-| run agents in parallel | `workflows/wave-dispatch/README.md` |
+| run parallel agents, or set up CI | `workflows/wave-dispatch/README.md`, `standards/philosophy/automated-runs-have-a-measured-budget.md` |
 | wrap up or reset a session | `workflows/session/` |
 
 ## Standing principles

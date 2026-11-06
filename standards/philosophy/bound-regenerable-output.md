@@ -38,3 +38,6 @@ Every tool that writes regenerable output limits it itself. Nobody has to rememb
   below a threshold. Parallel agents multiply every unbounded output.
 - **After the fact:** `disk-hygiene.md` stays the tool for what is already there, including
   orphans this rule cannot see.
+- **Not enough on its own:** this rule bounds what is kept. What each run writes, and how parallel
+  runs multiply it, is `[[automated-runs-have-a-measured-budget]]`: the same disk filled a third time
+  with every cap in place.
