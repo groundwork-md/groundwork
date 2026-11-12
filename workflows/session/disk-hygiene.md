@@ -1,5 +1,5 @@
 ---
-title: "Disk hygiene: periodically reclaim regenerable dev-environment cache buildup"
+title: "Disk hygiene: reclaim regenerable cache buildup, and consolidate scattered drives into one archive"
 type: "rule"
 category: "session"
 ---
@@ -39,6 +39,38 @@ The paths below are the usual suspects; each lists its macOS and Linux location.
 - **Stale VM-backed container tooling** (Podman machine, Lima, similar): `podman machine list` / `limactl list` show a "last up" timestamp — a machine idle for weeks while its disk image (tens of GB) sits on disk is a strong removal candidate. Confirm nothing depends on it being resumable (check whether the project that used it is still active) before removing.
 - **Docker installer/build caches and unused images**: `docker system df` shows reclaimable size directly. Never remove images/volumes still attached to a running container without checking whether that container is itself stale first (an old ephemeral test container left running for days is its own finding, not just a disk one — flag it).
 - **Build output inside active repos' worktrees** (`<repo>/.worktrees/*/…/target`, `node_modules`, `dist`, `.angular`): every worktree that ran the project's checks carries its own copy — a Tauri shell's Rust `target/` alone is 2.6 to 4 GB per worktree, and five parallel rails make five of them. All of it is ignored by git and regenerates on the next check or build. Find it with `du -sh <repo>/.worktrees/*` and `git -C <worktree> check-ignore <path>` before removing; `git worktree remove` removes the whole worktree once its issue is done. A project filled a disk this way twice in one day — and a full disk wedges Docker Desktop's VM (its console log can no longer be written, the VM stops, the backend hangs and the app will not relaunch until the hung backend is killed by hand).
+
+## Consolidating drives into one archive
+
+The other half of disk hygiene: not regenerable caches but real data spread over external drives,
+old backups and machines, moved into one archive (a cloud drive's sync folder, say) so the drives
+can be emptied. A layer can ship tooling for its own drives and archive; the method holds anywhere.
+
+- **Nothing is deleted.** Whatever leaves its place moves into a basket folder on the same drive (a
+  rename, so no data is rewritten). The owner empties baskets, never the agent.
+- **Sort by metadata, not contents.** Names, sizes, dates and folder structure are enough to sort;
+  opening a file's contents needs the owner's permission. A checksum is not reading: a machine reads
+  the bytes, nobody looks at them.
+- **The checksum is the proof.** Two files are duplicates only when their SHA-256 matches, not when
+  name, size and date match. An original goes to the basket only when its copy re-hashed equal *and*
+  the sync client reports the copy uploaded (on Windows, the Cloud Files placeholder's in-sync state;
+  a file not yet converted to a placeholder is pending, not failed).
+- **Make the second run cheap.** Keep a hash cache on each drive (path, size, mtime, hash: re-read only
+  what changed) and an index of everything already archived (hash per uploaded file). The first run
+  hashes everything; later runs hash the new files and skip whatever the index already holds. Never
+  rebuild the index by hashing the archive: online-only files would all download.
+- **Dedupe projects whole.** A folder with `.git`, a package manifest or a game world's `level.dat` is a
+  unit: identical units collapse, a unit that differs anywhere is archived complete. Deduplicating
+  file by file inside it leaves a repository or world with holes.
+- **Classify re-downloadable before duplicate.** OS images, installers, drivers and build output go to
+  the basket first; otherwise a mirror copy of an ISO looks unique once its twin is gone.
+- **Mirrored backup trees are the common case.** Compare whole subtrees by relative path, size and date
+  first: it shows which tree is the newest superset, and which rules to write.
+- **Windows paths over 260 characters** report no size and fail to copy unless addressed as `\\?\…`.
+  Read-only files (git objects) copy read-only, so clear the flag to set timestamps, then restore it.
+- **Write maps onto the drives**: a generated `CLAUDE.md` at each drive's root (what it is, its rules,
+  one line per top-level folder) and a `MAP.md` per top-level folder, regenerated from an inventory after
+  every change, never by hand: a stale map is worse than none, because it gets trusted.
 
 ## Prevention
 

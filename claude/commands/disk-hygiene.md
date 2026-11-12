@@ -1,5 +1,5 @@
 ---
-description: Reclaim regenerable dev-tooling cache buildup (Hatch, worktrees, containers) across the machine.
+description: Reclaim regenerable dev-tooling cache buildup (Hatch, worktrees, containers) across the machine, and consolidate real data from scattered drives into one archive without deleting anything.
 ---
 
 Follow this workflow exactly:

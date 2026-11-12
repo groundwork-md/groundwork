@@ -44,7 +44,7 @@ The concrete *how* for a recurring kind of work — read the whole file before d
 ## session
 
 - [Close-down-session: mine ~/.claude for durable notes, then wipe and recreate from groundwork](session/close-down-session.md)
-- [Disk hygiene: periodically reclaim regenerable dev-environment cache buildup](session/disk-hygiene.md)
+- [Disk hygiene: reclaim regenerable cache buildup, and consolidate scattered drives into one archive](session/disk-hygiene.md)
 - [New brand identity: positioning, visual system, motion and copy, decided from options before any asset is built](session/new-brand-identity.md)
 - [Retire-project: clean up a scrapped project's memory before it goes stale](session/retire-project.md)
 - [Start-new-project: resolve every open decision, scope everything, then write code](session/start-new-project.md)
