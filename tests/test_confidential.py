@@ -46,11 +46,12 @@ class FakeModel:
 
     def __init__(self, canned):
         outer = self
-        self.canned, self.hits, self.last, self.finish = canned, 0, None, "stop"
+        self.canned, self.hits, self.last, self.finish, self.requests = canned, 0, None, "stop", []
 
         class Handler(BaseHTTPRequestHandler):
             def do_POST(self):
                 outer.last = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+                outer.requests.append(outer.last)
                 outer.hits += 1
                 body = json.dumps({"choices": [{"finish_reason": outer.finish,
                                                 "message": {"content": json.dumps(outer.canned)}}]}).encode()
@@ -177,6 +178,57 @@ class Ingest(Base):
         self.assertEqual(self.model.last["reasoning_effort"], "none")
         proc = self.run_cli("config", config=self.write_config('request_options = { model = "other" }\n'))
         self.assertEqual(proc.returncode, confidential.EXIT_USAGE)
+
+    def _image_parts(self, request):
+        content = request["messages"][-1]["content"]
+        return [part for part in content if isinstance(content, list) and part.get("type") == "image_url"]
+
+    def test_an_image_is_transcribed_by_the_local_model_then_extracted(self):
+        path = os.path.join(self.dir, "letter.png")
+        with open(path, "wb") as f:
+            f.write(b"\x89PNG fake image bytes")
+        proc = self.run_cli("ingest", path)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(self.model.hits, 2)
+        (part,) = self._image_parts(self.model.requests[0])
+        self.assertTrue(part["image_url"]["url"].startswith("data:image/png;base64,"))
+        self.assertIn("ACME_TAX_ID", self.stored())
+        self.assertNoValue(proc.stdout)
+
+    def test_a_pdf_without_a_text_layer_is_read_page_by_page_from_its_images(self):
+        pages = self.write("pages.py", "import os, sys\nfor n in (1, 2):\n"
+                                       "    open(os.path.join(sys.argv[1], f'p{n}.jpg'), 'wb').write(b'jpg')\n")
+        config = self.write_config(f'text_command = ["{sys.executable}", "-c", ""]\n'
+                                   f'image_command = ["{sys.executable}", "{pages}", "{{out}}"]\n')
+        proc = self.run_cli("ingest", self.write("scan.pdf", "%PDF photo"), config=config)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual([len(self._image_parts(r)) for r in self.model.requests], [1, 1, 0])
+        self.assertTrue(self._image_parts(self.model.requests[0])[0]["image_url"]["url"].startswith("data:image/jpeg"))
+        self.assertEqual(self.stored()["ACME_TAX_ID"]["page"], 1)
+
+    def test_a_pdf_with_a_text_layer_never_runs_the_image_command(self):
+        text = self.write("text.py", f"print({DOCUMENT!r})\n")
+        marker = os.path.join(self.dir, "image-command-ran")
+        config = self.write_config(f'text_command = ["{sys.executable}", "{text}"]\n'
+                                   f'image_command = ["{sys.executable}", "-c", "open(r\'{marker}\', \'w\')"]\n')
+        proc = self.run_cli("ingest", self.write("digital.pdf", "%PDF text"), config=config)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(self.model.hits, 1)
+        self.assertFalse(os.path.exists(marker))
+
+    def test_a_surname_on_its_own_becomes_the_placeholder(self):
+        self.model.canned = dict(CANNED, summary="Notice to Ms Example about her tax id.")
+        proc = self.run_cli("ingest", self.write("notice.txt", DOCUMENT))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("Ms {{ACME_TAXPAYER}}", proc.stdout)
+        self.assertNotIn("Example", proc.stdout)
+
+    def test_the_filter_blocks_a_surname_on_its_own(self):
+        self.add("ACME_TAXPAYER", "person-name", NAME)
+        proc = self.run_cli("filter", stdin="Letter for Ms Example.")
+        self.assertEqual(proc.returncode, confidential.EXIT_BLOCKED)
+        proc = self.run_cli("filter", stdin="An example sentence about examples.")
+        self.assertEqual(proc.returncode, 0, proc.stdout)
 
     def test_remote_endpoint_is_refused(self):
         config = self.write_config(endpoint="http://models.example.invalid/v1/chat/completions")

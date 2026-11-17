@@ -40,6 +40,7 @@ store         = "~/confidential/store.bin"
 output_dir    = "~/confidential/filled"
 store_backend = "keychain"            # dpapi | keychain | plain (plain is for tests only)
 text_command  = ["pdftotext", "-layout", "{in}", "-"]          # turns a non-text file into text on stdout
+image_command = ["pdfpages", "{in}", "{out}"]                   # optional: page images of a scanned PDF into {out}
 label_only    = ["identity"]          # categories for which the agent gets only type and date
 timeout_s     = 120
 request_options = { reasoning_effort = "none" }   # optional; see the table
@@ -57,6 +58,7 @@ detectors     = [
 | `output_dir` | the only place `render` writes real values; the agent is kept out of it |
 | `store_backend` | `dpapi` (Windows, user scope), `keychain` (macOS `security`), `plain` (unencrypted JSON, warns, tests only); the default is the platform's own, and on other systems it must be set |
 | `text_command` | argv template for non-text files, `{in}` is the file; `.txt`, `.md` and `.csv` are read directly |
+| `image_command` | optional argv template that writes a document's page images (`.png`, `.jpg`, `.webp`) into the folder `{out}`; used when `text_command` yields almost no text (a scan or photo PDF). Needs a model with vision |
 | `label_only` | document categories whose summary is withheld |
 | `detectors` | extra `{kind, regex}` findings, matched in ingestion and in the filter |
 | `timeout_s` | for the model, the text command and `exec` |
@@ -74,7 +76,8 @@ above the longest document you ingest.
    `confidential.py store add NAME --kind K --from-stdin`; the value comes from stdin or
    `--from-file`, never from an argument.
 2. **Ingest** a document: `confidential.py ingest FILE`. The text is extracted (directly or with
-   `text_command`), deterministic detectors run (IBAN with checksum, e-mail, phone-like numbers, `0x`
+   `text_command`; an image, or a PDF without a text layer through `image_command`, is first transcribed
+   page by page by the local model, which needs vision), deterministic detectors run (IBAN with checksum, e-mail, phone-like numbers, `0x`
    addresses, bech32 addresses, long digit runs, money amounts with a currency, plus the layer's own),
    and the local model returns category, date, title, the sensitive items and a summary. New values go
    into the store; a value already stored keeps its name. Stored values are replaced by placeholders in
@@ -94,6 +97,12 @@ above the longest document you ingest.
      print verdicts and counts.
 5. **Review.** The person opens `output_dir` and checks the filled document. Nothing the agent can
    read is in there.
+6. **Deliver as a case.** A task arrives as a folder of inputs and leaves as a folder of results. File
+   the inputs, the reply and its attachments together in the layer's archive as one case folder,
+   numbered in the order things happened, each copy checksum-verified. Then replace the person's task
+   folder with a result folder holding everything needed to act (the reply ready to send, the
+   attachments named as they will be attached, a short note on what to expect), and move the task
+   folder to the basket once the archive copies are confirmed. A result is never only a chat message.
 
 `confidential.py filter` reads stdin and echoes it or prints `BLOCKED: n matches (kinds: ...)` and exits
 1; use it on anything else that is about to be shown to the agent. `confidential.py store list` shows
