@@ -12,7 +12,11 @@ category: "map"
 
 The concrete *how* for a recurring kind of work — read the whole file before doing that work.
 
-43 notes. Paths are relative to `workflows/`.
+44 notes. Paths are relative to `workflows/`.
+
+## confidential
+
+- [Confidential documents: let an agent work on them without any value reaching the model provider](confidential/README.md)
 
 ## groundwork
 

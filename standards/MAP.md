@@ -12,7 +12,7 @@ category: "map"
 
 What to reach for when nothing about the task says otherwise. Not tied to any one job.
 
-29 notes. Paths are relative to `standards/`.
+30 notes. Paths are relative to `standards/`.
 
 ## philosophy
 
@@ -20,6 +20,7 @@ What to reach for when nothing about the task says otherwise. Not tied to any on
 - [Every automated run has a measured budget: time, bytes written and disk growth, multiplied by its parallelism](philosophy/automated-runs-have-a-measured-budget.md)
 - [Regenerable output is bounded where it is made: caches are capped, outputs overwrite, merged worktrees go](philosophy/bound-regenerable-output.md)
 - [Check the vault first, then the web, then write back](philosophy/check-vault-before-web.md)
+- [Confidential values stay local: the agent works on placeholders, a local model reads, a filter guards the way out](philosophy/confidential-values-stay-local.md)
 - [Three failed fixes: stop patching, re-examine the design](philosophy/debugging-escalation-after-repeated-failures.md)
 - [Deliberate-break proofs: a guard that has only ever passed is not known to work](philosophy/deliberate-break-proofs.md)
 - [Derive tests from the code surface, not only from the acceptance criteria](philosophy/derive-tests-from-the-code-surface.md)

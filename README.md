@@ -103,8 +103,9 @@ my-layer/
 | `workflows/session/` | Session rituals (start a project, wrap up, close down, retire a project, disk hygiene, a brand-identity process) and the specification-sheet templates. |
 | `workflows/single-branch/` | The commit discipline for repos that commit straight to one branch, such as a layer. |
 | `workflows/wave-dispatch/` | Rules for running several agents against one repository, each learned from a failure. |
+| `workflows/confidential/`, `claude/skills/confidential/` | An opt-in way to let an agent work with confidential documents while the values stay on your machine: a local model extracts, a local store holds the values, the agent sees placeholders, a filter and a hook guard the way out. |
 | `claude/CLAUDE.md` | The entry file: a router of at most 400 words that points at the notes by situation. |
-| `claude/commands/` | Slash commands that load a workflow: `/new-issue`, `/start-new-project`, `/wrap-up-session`, `/close-down-session`, `/retire-project`, `/disk-hygiene`, `/new-brand-identity`, `/groundwork-self-review`. The base ships no agents or skills. |
+| `claude/commands/` | Slash commands that load a workflow: `/new-issue`, `/start-new-project`, `/wrap-up-session`, `/close-down-session`, `/retire-project`, `/disk-hygiene`, `/new-brand-identity`, `/groundwork-self-review`. The base ships no agents and one opt-in skill, `confidential`. |
 | `bin/`, `groundwork.just` | The mechanism: `gwk.py` (checks and `link`), the `commit-msg` hook, and the recipes every layer imports. |
 
 Every directory has a generated `MAP.md` listing its notes by title. Start there, not here.

@@ -12,7 +12,7 @@ category: "map"
 
 `CLAUDE.md`, `commands/` (`/`-triggered), `skills/`, `agents/`. Assembled into `~/.claude/`.
 
-9 notes. Paths are relative to `claude/`.
+10 notes. Paths are relative to `claude/`.
 
 ## claude/
 
@@ -28,3 +28,7 @@ category: "map"
 - [retire-project](commands/retire-project.md)
 - [start-new-project](commands/start-new-project.md)
 - [wrap-up-session](commands/wrap-up-session.md)
+
+## skills/confidential
+
+- [Confidential documents](skills/confidential/SKILL.md)

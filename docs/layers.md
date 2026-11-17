@@ -158,6 +158,7 @@ lists and cannot catch a leak written in prose.
 | `assembled` | `true` on exactly one layer per stack: the one that owns `~/.claude` |
 | `commit_reference` | `"issue"` (a trailing `(#N)` is required) or `"none"`; the default is `"issue"`. `GWK_COMMIT_REFERENCE` in the environment overrides it. |
 | `[map.<dir>]` | `heading` and `purpose` of each directory's generated `MAP.md` |
+| `[confidential]` | opt-in: a local model, a local value store and a guard so an agent can work with confidential documents without seeing a value; keys in [`workflows/confidential/README.md`](../workflows/confidential/README.md). Absent or `enabled = false`, nothing changes. |
 | `[publishable]` | `domains`, `emails` and `repo_stems` this layer must never leak into a layer beneath it |
 
 The other files a layer keeps in `.groundwork/`: `author-name` and `author-email` (the identity
