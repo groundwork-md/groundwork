@@ -35,7 +35,7 @@ MIN_TEXT_LAYER = 40  # fewer non-blank characters than this: treat a PDF as a ph
 MIN_MATCH = 4  # a stored value shorter than this is not matched by the filter (it would block everything)
 
 KEYS = {"enabled", "endpoint", "model", "store", "output_dir", "store_backend", "text_command",
-        "label_only", "detectors", "timeout_s", "request_options", "image_command"}
+        "label_only", "detectors", "timeout_s", "request_options", "image_command", "visible_kinds"}
 EXIT_BLOCKED, EXIT_USAGE, EXIT_SEED, EXIT_MODEL = 1, 2, 3, 4
 
 
@@ -102,7 +102,7 @@ def load_config(config_path=None):
         raise UserError(f"unknown key(s) in [confidential] of {source}: {', '.join(unknown)}")
     cfg = {"enabled": False, "endpoint": "", "model": "", "store": "", "output_dir": "", "store_backend": "",
            "text_command": [], "label_only": [], "detectors": [], "timeout_s": 120,
-           "request_options": {}, "image_command": []}
+           "request_options": {}, "image_command": [], "visible_kinds": []}
     cfg.update(raw)
     cfg["_source"] = source
     for key in ("store", "output_dir"):
@@ -121,6 +121,8 @@ def load_config(config_path=None):
     cfg["_detectors"] = compiled
     if not isinstance(cfg["request_options"], dict) or {"model", "messages", "response_format"} & set(cfg["request_options"]):
         raise UserError("request_options must be a table and may not set model, messages or response_format")
+    if not isinstance(cfg["visible_kinds"], list) or not all(isinstance(k, str) for k in cfg["visible_kinds"]):
+        raise UserError("visible_kinds must be a list of kinds")
     return cfg
 
 
@@ -382,27 +384,29 @@ def seed_phrase_suspected(text):
 
 # ---------------------------------------------------------------------------------------- filter
 
-def check_text(text, entries, extra=()):
-    """(count, kinds): stored-value matches and detector hits in TEXT. Placeholders are ignored."""
+def check_text(text, entries, extra=(), visible=()):
+    """(count, kinds): stored-value matches and detector hits in TEXT. Placeholders are ignored, and so are
+    the kinds in VISIBLE (a task's `visible_kinds`, e.g. amounts the person agreed the agent may see)."""
+    visible = {k.casefold() for k in visible}
     text = PLACEHOLDER_RE.sub(" ", text)
     t_ws, t_alnum, t_digits = _ws(text), _alnum(text), _digits(text)
     kinds = []
     for entry in entries.values():
         v = entry["value"]
-        if len(v.strip()) < MIN_MATCH:
+        if len(v.strip()) < MIN_MATCH or entry.get("kind", "").casefold() in visible:
             continue
         va, vd = _alnum(v), _digits(v)
         if (v in text or _ws(v) in t_ws or (len(va) >= 6 and va in t_alnum)
                 or (_numeric(v) and len(vd) >= 8 and vd in t_digits)
                 or any(_part_rx(w).search(text) for w in name_parts(entry))):
             kinds.append(entry.get("kind", "value"))
-    kinds += [kind for kind, _, _, _ in detect(text, extra)]
+    kinds += [kind for kind, _, _, _ in detect(text, extra) if kind.casefold() not in visible]
     return len(kinds), sorted(set(kinds))
 
 
 def guarded(cfg, text):
     """The text itself when clean, else None after printing the block notice."""
-    count, kinds = check_text(text, load_entries(cfg), cfg["_detectors"])
+    count, kinds = check_text(text, load_entries(cfg), cfg["_detectors"], cfg["visible_kinds"])
     if count:
         print(f"BLOCKED: {count} matches (kinds: {', '.join(kinds)})")
         return None
@@ -645,7 +649,7 @@ def cmd_ingest(cfg, args):
 def cmd_config(cfg, _args):
     print(f"source: {cfg['_source'] or '(none: no [confidential] section found)'}")
     print(f"enabled: {str(cfg.get('enabled', False)).lower()}")
-    for key in ("endpoint", "model", "store", "output_dir", "store_backend", "label_only", "timeout_s"):
+    for key in ("endpoint", "model", "store", "output_dir", "store_backend", "label_only", "visible_kinds", "timeout_s"):
         if key in cfg:
             print(f"{key}: {cfg[key]}")
     if "text_command" in cfg:

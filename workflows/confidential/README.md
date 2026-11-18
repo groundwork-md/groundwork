@@ -60,6 +60,7 @@ detectors     = [
 | `text_command` | argv template for non-text files, `{in}` is the file; `.txt`, `.md` and `.csv` are read directly |
 | `image_command` | optional argv template that writes a document's page images (`.png`, `.jpg`, `.webp`) into the folder `{out}`; used when `text_command` yields almost no text (a scan or photo PDF). Needs a model with vision |
 | `label_only` | document categories whose summary is withheld |
+| `visible_kinds` | kinds (stored values and detector hits, e.g. `money`) that `filter`, `exec` and `ingest` let through; set only in a one-off task config, after the person agreed that the agent may see them. Default: none |
 | `detectors` | extra `{kind, regex}` findings, matched in ingestion and in the filter |
 | `timeout_s` | for the model, the text command and `exec` |
 | `request_options` | optional table merged into the model request, for runtime switches such as turning off a model's reasoning mode (`reasoning_effort = "none"`); it may not set `model`, `messages` or `response_format` |

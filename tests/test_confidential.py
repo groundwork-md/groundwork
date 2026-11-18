@@ -331,6 +331,21 @@ class Filter(Base):
         proc = self.run_cli("filter", stdin="{{ACME_COMPANY}} {{ACME_TAX_ID}}")
         self.assertEqual(proc.returncode, 0)
 
+    def test_amounts_block_by_default(self):
+        self.add("ACME_FEE", "money", "1.234,56 EUR")
+        self.blocked("fee 1.234,56 EUR")                        # stored amount
+        self.blocked("rent 987,65 EUR")                         # detector hit, never stored
+
+    def test_visible_kinds_lets_amounts_through_and_nothing_else(self):
+        self.add("ACME_FEE", "money", "1.234,56 EUR")
+        config = self.write_config('visible_kinds = ["money"]\n')
+        text = "fee 1.234,56 EUR, rent 987,65 EUR\n"
+        proc = self.run_cli("filter", stdin=text, config=config)
+        self.assertEqual((proc.returncode, proc.stdout), (0, text))
+        proc = self.run_cli("filter", stdin=f"fee 1.234,56 EUR to {IBAN}", config=config)
+        self.assertEqual(proc.returncode, 1)
+        self.assertNoValue(proc.stdout)
+
 
 class Store(Base):
     def test_list_never_reveals_a_value(self):
